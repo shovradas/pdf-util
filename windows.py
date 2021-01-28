@@ -28,31 +28,37 @@ class MainWindow(QMainWindow):
         # Initializations
         self.outputDirectoryLineEdit.setText(str(Path.home()))
 
+    #region Methods
+
+    def add_files(self, files):
+        duplicate_files = []
+        for i, file in enumerate(files, 1):
+            if self.fileListWidget.findItems(file, Qt.MatchExactly):
+                duplicate_files.append(f'{i}. {file}')
+        if duplicate_files:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Question)
+            msg.setWindowTitle("Confirm")
+            msg.setText("One or more file(s) in your selection already exists")
+            msg.setInformativeText("Do you still want to proceed?")
+            msg.setDetailedText('Duplicate files: \n' + '\n'.join(duplicate_files))
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            reply = msg.exec_()
+            if reply==QMessageBox.Cancel:
+                return
+        self.fileListWidget.addItems(files)
+        
+    #endregion
+
+    #region Slots
+
     def addButton_clicked(self):
         dialog = QFileDialog()        
         dialog.setFileMode(QFileDialog.ExistingFiles)
         # dialog.setFilter("PDF files (*.pdf)")
         if dialog.exec_():
-            files = dialog.selectedFiles()
-            
-            # Checking if same file is selected intentionally or not
-            duplicate_files = []
-            for i, file in enumerate(files, 1):
-                if self.fileListWidget.findItems(file, Qt.MatchExactly):
-                    duplicate_files.append(f'{i}. {file}')
-            if duplicate_files:
-                msg = QMessageBox()
-                msg.setIcon(QMessageBox.Question)
-                msg.setWindowTitle("Confirm")
-                msg.setText("One or more file(s) in your selection already exists")
-                msg.setInformativeText("Do you still want to proceed?")            
-                msg.setDetailedText('Duplicate files: \n' + '\n'.join(duplicate_files))
-                msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-                reply = msg.exec_()
-                if reply==QMessageBox.Cancel:
-                    return
-
-            self.fileListWidget.addItems(files)
+            files = dialog.selectedFiles()            
+            self.add_files(files)
 
     def removeButton_clicked(self):
         self.fileListWidget.takeItem(
@@ -77,7 +83,7 @@ class MainWindow(QMainWindow):
         merger = PdfFileMerger()
         for i in range(self.fileListWidget.count()):
             item = self.fileListWidget.item(i)
-            merger.append(item.text())        
+            merger.append(item.text())
         merger.write(str(output_path))
         merger.close()
 
@@ -89,5 +95,19 @@ class MainWindow(QMainWindow):
         if dialog.exec_():
             selected_directory = dialog.selectedFiles()[0]
             self.outputDirectoryLineEdit.setText(selected_directory)
+    
+    #endregion
 
+    #region Events
 
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasUrls():
+            e.accept()            
+        else:
+            e.ignore()
+
+    def dropEvent(self, e):
+        files = [url.toLocalFile() for url in e.mimeData().urls()]
+        self.add_files(files)
+
+    #endregion
