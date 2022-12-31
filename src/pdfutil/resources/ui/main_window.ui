@@ -20,7 +20,7 @@
    <bool>true</bool>
   </property>
   <property name="windowTitle">
-   <string>PDF Merger</string>
+   <string>PDFUtil</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QGroupBox" name="mainGroupBox">

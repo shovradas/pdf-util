@@ -1,15 +1,18 @@
+import pkgutil
 from pathlib import Path
-from PyQt5 import uic
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import Qt
-from PyPDF2 import PdfFileMerger
 
-__author__ = "Shovra Das"
+from PyQt6 import uic
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import Qt
+from PyPDF2 import PdfMerger
+
+RESOURCE_ROOT = Path(pkgutil.get_loader(__name__).path).parent / 'resources'
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('main_window.ui', self)
+        
+        uic.loadUi(RESOURCE_ROOT / 'ui/main_window.ui', self)       
 
         # Controls
         self.statusBar = QStatusBar()
@@ -29,11 +32,10 @@ class MainWindow(QMainWindow):
         self.outputDirectoryLineEdit.setText(str(Path.home()))
 
     #region Methods
-
     def add_files(self, files):
         duplicate_files = []
         for i, file in enumerate(files, 1):
-            if self.fileListWidget.findItems(file, Qt.MatchExactly):
+            if self.fileListWidget.findItems(file, Qt.MatchFlag.MatchExactly):
                 duplicate_files.append(f'{i}. {file}')
         if duplicate_files:
             msg = QMessageBox()
@@ -54,9 +56,9 @@ class MainWindow(QMainWindow):
 
     def addButton_clicked(self):
         dialog = QFileDialog()        
-        dialog.setFileMode(QFileDialog.ExistingFiles)
+        dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
         # dialog.setFilter("PDF files (*.pdf)")
-        if dialog.exec_():
+        if dialog.exec():
             files = dialog.selectedFiles()            
             self.add_files(files)
 
@@ -80,7 +82,7 @@ class MainWindow(QMainWindow):
             output_file += '.pdf'
         output_path = Path(self.outputDirectoryLineEdit.text()) / output_file
 
-        merger = PdfFileMerger()
+        merger = PdfMerger()
         for i in range(self.fileListWidget.count()):
             item = self.fileListWidget.item(i)
             merger.append(item.text())
@@ -91,23 +93,21 @@ class MainWindow(QMainWindow):
 
     def outputDirectoryButton_clicked(self):
         dialog = QFileDialog()
-        dialog.setFileMode(QFileDialog.DirectoryOnly)
-        if dialog.exec_():
+        dialog.setFileMode(QFileDialog.FileMode.Directory)
+        if dialog.exec():
             selected_directory = dialog.selectedFiles()[0]
             self.outputDirectoryLineEdit.setText(selected_directory)
     
     #endregion
 
     #region Events
-
     def dragEnterEvent(self, e):
         if e.mimeData().hasUrls():
-            e.accept()            
+            e.accept()
         else:
             e.ignore()
 
     def dropEvent(self, e):
         files = [url.toLocalFile() for url in e.mimeData().urls()]
         self.add_files(files)
-
     #endregion

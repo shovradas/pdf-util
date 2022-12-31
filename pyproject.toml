@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "pdfutil"
+version = "0.1.0"
+description = "A desktop app for converting image(s) to PDF(s) and merging PDF files"
+authors = ["Shovra Das <shovradas@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = []
+# include = ["bin"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pypdf2 = "^3.0.1"
+pyqt6 = "^6.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+pdfutil = "pdfutil.__main__:main"
