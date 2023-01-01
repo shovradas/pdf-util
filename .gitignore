@@ -132,8 +132,3 @@ dmypy.json
 
 # PDM
 .pdm.toml
-
-# SD
-bin
-artifacts
-deploy
